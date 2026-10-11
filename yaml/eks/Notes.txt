@@ -1,0 +1,176 @@
+Go to roles
+Create roles
+EKS
+Eks-cluster
+tags
+role name
+
+
+
+create a user
+	attach eks 
+
+
+
+install aws cli
+	https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+	aws --version
+		should be >2.0.42 (check documentation for current status)
+ 	aws configure
+	
+eks cluster creation	
+https://adamtheautomator.com/aws-eks-cli/
+
+kubectl install
+this is a command line tool, you will need to run it from commandline
+https://docs.aws.amazon.com/eks/latest/userguide/install-kubectl.html
+
+
+install chocolatey
+https://chocolatey.org/install
+
+install eksctl
+https://docs.aws.amazon.com/eks/latest/userguide/eksctl.html
+
+
+eksctl create cluster --name vilasekscluster1 --version 1.22 --region us-east-2 --nodegroup-name vilas-workers --node-type t3.micro --nodes 2 --nodes-min 1 --nodes-max 2 --managed
+
+eksctl create cluster --name vilasekscluster1 --region us-east-2 --nodegroup-name vilas-workers --node-type t3a.medium --nodes 2 --nodes-min 2 --nodes-max 2 --managed
+
+get config
+aws eks update-kubeconfig --name vilasekscluster1 --region us-east-2
+
+
+volume with ebs
+https://aws.amazon.com/premiumsupport/knowledge-center/eks-persistent-storage/
+
+kubectl annotate serviceaccount ebs-csi-controller-sa -n kube-system 
+https://aws.amazon.com/premiumsupport/knowledge-center/eks-persistent-storage/ eks.amazonaws.com/role-arn=arn:aws:iam::267092042432:role/AmazonEKS_EBS_CSI_DriverRole
+
+
+kubectl delete pods -n kube-system -l=app=ebs-csi-controller
+
+eksctl delete cluster --name vilasekscluster1
+
+D:\software\kubernetes\aws-ebs-csi-driver\examples\kubernetes\static-provisioning
+
+------------------------------------------------------------------------
+Roles for eks 
+-------------
+Roles (IAM)
+	Create roles
+	Common use cases : 
+		EKS
+		EKS cluster 
+			Next
+			Create Role
+	
+create new vpc (VPC and more)	
+Create eks cluster 
+	attach the policy and vpc created just now
+	
+	
+	Attach permission
+		AmazonEKSClusterPolicy
+			Next Tags
+				Nex Review
+					Give name and description
+	Use the role in eks				
+		
+Roles for nodes
+-----------------
+https://docs.aws.amazon.com/eks/latest/userguide/using-service-linked-roles-eks-nodegroups.html
+https://www.youtube.com/watch?v=SsUnPWp5ilc
+	similar process with 
+		N.B: we are giving ec2 instances access to work with eks
+		
+		Common use cases :EC2
+		Policies
+			AmazonEKSWorkerNodePolicy
+			AmazonEKS_CNI_Policy
+			AmazonEC2ContainerRegistryReadOnly
+
+			
+			
+			
+
+	Create roles
+	AWS Service 
+		Common use cases : EC2
+			Next Permissions
+		Select all the 3 above roles
+		
+		
+		Install aws cli
+		https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+		
+		https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html
+		https://docs.aws.amazon.com/eks/latest/userguide/install-kubectl.html
+		
+		aws --version
+		should be >2.0.42 (check documentation for current status)
+		aws configure
+		
+		aws iam list-users
+		aws sts get-caller-identity
+		
+		aws eks --region <region> describe-cluster --name <cluster-name> --query cluster.status
+		aws eks --region ap-northeast-1 describe-cluster --name vilaseks --query cluster.status
+		
+		aws eks update-kubeconfig --name vilaseks --region ap-northeast-1
+		kubectl get svc
+		kubectl get pods
+		
+		
+-------------------------
+Create vpc using cloudformation and the template provided in https://docs.aws.amazon.com/eks/latest/userguide/creating-a-vpc.html
+Then create the ekscluster using the above vpc.
+Reference: https://www.youtube.com/watch?v=aZd0UolVwD4		
+
+
+install aws-iam-authenticator, kubectl 
+
+
+-----------------------------------
+Accessing worker node in eks cluster
+aws eks update-kubeconfig --name <cluster-name>
+kubectl get nodes
+kubectl exec -it <node-name> <command>
+
+------------------------------------
+For ssh access
+
+Create an Amazon Machine Image (AMI) that has SSH enabled. You can use one of the existing AMIs that have SSH preconfigured, or create a new AMI by customizing an Amazon Linux or Ubuntu image.
+
+Create a launch configuration or launch template that uses the AMI with SSH enabled. This launch configuration or launch template will be used to launch the worker nodes in your EKS cluster.
+
+Create an EC2 key pair that you can use to SSH into the worker nodes. You can create a new key pair using the EC2 console or the AWS CLI.
+
+Create a security group that allows inbound SSH traffic to the worker nodes. You can create a new security group using the EC2 console or the AWS CLI.
+
+Launch the worker nodes using the launch configuration or launch template that you created earlier. Make sure to specify the key pair and security group that you created.
+
+Once the worker nodes are launched, you can use the public IP address or DNS name of a worker node to SSH into it using the EC2 key pair that you created. For example, you can use the following command to SSH into a worker node:
+
+
+ssh -i <path-to-key-pair> ec2-user@<worker-node-public-ip>
+Note that you should replace <path-to-key-pair> with the path to the private key file of the EC2 key pair that you created, and <worker-node-public-ip> with the public IP address of the worker node that you want to SSH into.
+
+Once you are logged into the worker node, you can perform any necessary troubleshooting or maintenance tasks.
+
+
+
+------------------------
+Good references
+https://docs.aws.amazon.com/eks/latest/userguide/create-cluster.html
+
+
+https://docs.aws.amazon.com/eks/latest/userguide/launch-workers.html
+https://www.eksworkshop.com/docs/introduction/getting-started/packaging-application
+
+
+---------------
+SSH access
+Create an ami with pem file
+Create specify an SSH key in the launch configuration
+https://docs.aws.amazon.com/autoscaling/ec2/userguide/create-launch-config.html

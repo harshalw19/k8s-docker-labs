@@ -1,0 +1,172 @@
+For latest refer : https://computingforgeeks.com/install-kubernetes-cluster-on-centos-with-kubeadm/
+
+
+# Update hosts file
+echo "[TASK 1] Update /etc/hosts file"
+cat >>/etc/hosts<<EOF
+192.168.76.151 ckahamaster1 ckahamaster1
+192.168.76.152 ckahamaster2 ckahamaster2
+192.168.76.153 ckahamaster3 ckahamaster3
+192.168.76.154 ckahaworker1 ckahaworker1
+192.168.76.155 ckahaworker2 ckahaworker2
+
+EOF
+
+/etc/resolv.conf
+nslookup google.com
+
+For Amazon Linux 2 systems
+Launch 2 amazon linux 2 machines
+1 master and 1 slaves
+
+On both master and slave nodes :
+
+    sudo su 
+    yum install docker -y 
+    systemctl enable docker && systemctl start docker
+------------------------------------------------------------------
+Only for installing Docker CE on CentOS 7 on AWS/Azure
+	1. sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+  
+	2. sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+	
+	3. sudo yum-config-manager --enable docker-ce-edge
+	4. sudo yum-config-manager --enable docker-ce-test
+	5. sudo yum install -y https://download.docker.com/linux/centos/7/x86_64/stable/Packages/containerd.io-1.2.6-3.3.el7.x86_64.rpm
+	
+	or easy installation
+	
+	6. sudo yum install docker-ce
+	7. systemctl start docker
+	8. systemctl enable docker
+
+------------------------------------------------------------------
+
+
+cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+enabled=1
+gpgcheck=1
+repo_gpgcheck=0
+gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+exclude=kube*
+EOF
+
+cat /etc/yum.repos.d/kubernetes.repo
+
+cat <<EOF >  /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+EOF
+	
+cat /etc/sysctl.d/k8s.conf
+	
+sysctl --system
+
+setenforce 0
+
+### install kubelet, kubeadm and kubectl; start kubelet daemon
+### Do it on both master as welll as worker nodes 
+
+    yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+	#Below installable is no more available
+	#yum install -y -q kubeadm-1.18.9 kubelet-1.18.9 kubectl-1.18.9 
+	
+    #yum remove -y kubelet kubeadm kubectl 
+
+
+    systemctl enable kubelet && systemctl start kubelet
+	#This may give error even after starting. Wait until the proccess is done.
+
+### On master node  initialize the cluster 
+
+    sudo kubeadm init --pod-network-cidr=192.168.0.0/16 --ignore-preflight-errors=NumCPU
+	#--ignore-preflight-errors=NumCPU  --ignore-preflight-errors=Mem - it is fine to repeat ignore-preflight-errors
+	#On cloud
+	sudo kubeadm init --ignore-preflight-errors=NumCPU
+    #  sudo kubeadm init --pod-network-cidr=192.168.0.0/16 #Do this only if proper CPU cores are available
+-------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+#if init fails 
+#This was tested on centos
+sudo rm -rf /etc/kubernetes/manifests
+sudo kubeadm reset -f
+sudo iptables -F && iptables -t nat -F && iptables -t mangle -F && iptables -X
+
+cat > /etc/docker/daemon.json <<EOF
+{
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m"
+  },
+  "storage-driver": "overlay2"
+}
+EOF
+
+sudo systemctl daemon-reload
+systemctl restart docker
+
+swapoff -a
+systemctl start kubelet
+sudo kubeadm init --ignore-preflight-errors=NumCPU
+----------------------------------------------------------------------------------------------------------------------------------    
+-------------------------------------------------------------------------------------------------------	
+	mkdir -p $HOME/.kube
+    sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+    sudo chown $(id -u):$(id -g) $HOME/.kube/config
+	
+	Only for admin
+    export KUBECONFIG=/etc/kubernetes/kubelet.conf
+
+## On Worker nodes, Switch to the root mode
+Copy kubeadm join command from output of "kubeadm init on master node" 
+   
+    <kubeadm join command copies from master node>
+
+## Clone a repository to get YAML files for Calico networking
+
+	kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+
+## For calico networking: apply on master node only
+
+    sudo kubectl apply -f etcd.yaml
+    sudo kubectl apply -f rbac.yaml
+    sudo kubectl apply -f calico.yaml
+
+    
+
+Take a pause of 2 minutes and see if the nodes are ready; run it on master node
+
+    kubectl get nodes
+
+##watch system pods
+
+    kubectl get pods --all-namespaces
+
+
+on all the worker nodes do 
+
+    mkdir -p $HOME/.kube
+    export KUBECONFIG=/etc/kubernetes/kubelet.conf
+	
+Regenerate join command	
+	
+To print a join command for worker/slave node,
+kubeadm token create --print-join-command
+
+But if you need to join a new control plane node, that won't work as you need to recreate a new key for the control plane join command. This can be done with three simple steps.
+
+01.) re upload certs in the already working master node
+sudo kubeadm init phase upload-certs --upload-certs
+it will generate a new certificate key.
+
+02.) print join command in the already working master node
+kubeadm token create --print-join-command
+
+03.) Add the --control-plane --certificate-key and execute.
+ <join command from step 02> --certificate-key <key from step 01>
+
+Done.	

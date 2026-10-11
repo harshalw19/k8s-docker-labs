@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iisn
+  labels:
+    app: iisd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iisc
+  template:
+    metadata:
+      labels:
+        app: iisc
+    spec:
+      containers:
+      - name: iis-container
+        image: microsoft/iis
+        ports:
+        - containerPort: 80

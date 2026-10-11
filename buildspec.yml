@@ -1,0 +1,76 @@
+version: 0.2
+
+env:
+  variables:
+    AWS_REGION: "us-east-1" #this can be removed and defined in build env.
+    ECR_REPO_NAME: "docker-k8s"
+    IMAGE_TAG: "latest"
+    EKS_CLUSTER_NAME: "YOUR_EKS_CLUSTER_NAME"   # <-- CHANGE THIS
+
+#  parameter-store:
+#    AWS_ACCOUNT_ID: "396982710430"     # optional (you may remove)
+
+phases:
+  install:
+    commands:
+      - echo "===== INSTALL PHASE (Ubuntu) ====="
+      - echo "Updating apt index..."
+      - apt-get update -y
+
+      # Install docker CLI if not present
+      - |
+        if ! command -v docker >/dev/null 2>&1; then
+          echo "Installing Docker..."
+          apt-get install -y docker.io
+        fi
+
+      # Install Maven if not present
+      - |
+        if ! command -v mvn >/dev/null 2>&1; then
+          echo "Installing Maven..."
+          apt-get install -y maven
+        fi
+
+      # Install kubectl
+      #these lines are removed 
+      
+      - echo "Tool versions:"
+      - docker --version
+      - mvn -version
+      #- kubectl version --client --short
+
+  pre_build:
+    commands:
+      - echo "===== PRE-BUILD PHASE ====="
+      - echo "Logging in to ECR..."
+      - echo "AWS_REGION=$AWS_REGION"
+      - echo "AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID"
+
+      - aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com"
+
+      - echo "Ensuring ECR repo exists..."
+      - aws ecr describe-repositories --repository-names "$ECR_REPO_NAME" --region "$AWS_REGION" || aws ecr create-repository --repository-name "$ECR_REPO_NAME" --region "$AWS_REGION"
+
+      - echo "Running Maven package..."
+      - mvn -B clean package -DskipTests
+
+
+  build:
+    commands:
+      - echo "===== BUILD DOCKER IMAGE ====="
+      - export IMAGE_URI="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_NAME:$IMAGE_TAG"
+      - echo "IMAGE_URI=$IMAGE_URI"
+
+      - docker build -t "$ECR_REPO_NAME:$IMAGE_TAG" .
+      - docker tag "$ECR_REPO_NAME:$IMAGE_TAG" "$IMAGE_URI"
+
+  post_build:
+    commands:
+      - echo "===== PUSH & DEPLOY ====="
+
+      # Push image
+      - docker push "$IMAGE_URI"
+
+artifacts:
+  files:
+    - target/*.jar

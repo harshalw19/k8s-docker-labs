@@ -1,0 +1,42 @@
+Reference: https://stackoverflow.com/questions/58280864/k8s-ingress-for-nodeport-example-for-beginners
+
+1. kubectl create deploy test --image httpd
+2. kubectl expose deploy test --port 80 --target-port 80
+
+3. kubectl get svc
+
+
+4. curl <ip>:80
+
+Create bare-metal ingress controller
+
+5. kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.0.0/deploy/static/provider/baremetal/deploy.yaml
+
+
+6. kubectl apply -f -<<EOF
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: test
+  annotations:
+    kubernetes.io/ingress.class: nginx  
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          service:
+            name: test
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+EOF
+
+
+7. kubectl get no -o wide
+
+8. kubectl get svc -n ingress-nginx 
+	this should show a node port
+	
+9. curl <node id of ingress>:<node port ip>

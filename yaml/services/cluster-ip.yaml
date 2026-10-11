@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-cluster-ip
+  labels:
+    app: my-cluster-ip
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+  selector:
+    app: nginx
+
+#http://my-cluster-ip.svc.cluster.local/catalog/companies/Hexaware/employees

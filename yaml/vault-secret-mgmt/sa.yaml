@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vault-serviceaccount
+  namespace: vault
+  labels:
+    app: read-vault-secret

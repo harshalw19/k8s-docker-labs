@@ -1,0 +1,39 @@
+Kubernetes dashboard
+
+https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/
+
+to login
+
+
+
+
+
+kubectl get svc -n kubernetes-dashboard
+kubectl edit svc kubernetes-dashboard -n kubernetes-dashboard
+	update clusterip to NodePort
+Edit security group to allow the port 
+
+Access it like https://3.133.92.197:32430/
+
+	Then follow 
+	
+	https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md 
+
+N.B: If you cluster is earlier than 24
+	kubectl -n kubernetes-dashboard create token admin-user will fail with 
+		Error: must specify one of -f and -k
+	
+	Instead execute 
+		kubectl -n kubernetes-dashboard get secret $(kubectl -n kubernetes-dashboard get sa/admin-user -o jsonpath="{.secrets[0].name}") -o go-template="{{.data.token | base64decode}}"
+	Reference: https://stackoverflow.com/questions/72481655/creating-a-kubernetes-dashboard-token
+	
+
+
+---------- some useful commands
+
+kubectl create serviceaccount dashboard -n default
+
+kubectl create clusterrolebinding dashboard-admin -n default --clusterrole=cluster-admin --serviceaccount=default:dashboard
+
+
+kubectl get secret dashboard -n default

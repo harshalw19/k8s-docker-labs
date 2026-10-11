@@ -1,0 +1,528 @@
+	Install helm
+	Reference:
+		https://helm.sh/docs/intro/install/
+		
+		$ curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+		$ chmod 700 get_helm.sh
+		$ ./get_helm.sh
+
+
+----------------------------------------------------------------------------------------
+Helm
+	Package manager for Kubernetes
+	
+
+Helm package 
+	contains 
+		resource definitions to run an 
+			application, 
+			tool, or 
+			service 
+				inside of a Kubernetes cluster. 
+	streamlines installing and managing Kubernetes applications. 
+	Think of it like apt/yum/homebrew for Kubernetes.
+
+Charts 
+	Help 
+		define, 
+		install and 
+		upgrade 
+			complex kuberetes application.
+	Helm packages that contain at least the below:
+		Chart.yaml
+		templates folder with Kubernetes manifest files
+		values.yaml
+	Can be 
+		stored on disk, or 
+		fetched from remote chart repositories 
+			(like Debian or RedHat packages)
+	Can be versioned, shared and published.
+	Can accept input parameters
+	Popular packages are available as helm charts already.
+	
+	
+Repository
+	Place where charts can be collected and shared
+	
+Release
+	is an instance of a chart running in a Kubernetes cluster
+
+Helm Hub
+	public repository of charts for popular software
+
+	We can also 
+		retrieve charts from third-party repositories, 
+		author and contribute our own charts 
+			to someone else’s repository, 
+		or run your own chart repository.
+
+Helm 
+	Find new charts
+		search Helm chart repositories.
+	installs charts into Kubernetes
+		creating a new release for each installation. 
+----------------------------------------------------------------------------------------
+	
+	
+	Helm version
+		-> helm version
+	
+	To find available charts use the search command.
+	
+----------------------------------------------------------------------------------------	
+	helm search hub
+		Searches in https://artifacthub.io/(now - earlier https://hub.helm.sh/)
+		list all helm charts available in that location.
+	helm search repo 
+		searches the repositories that you have added to your local helm client
+		
+	helm search --help
+		uses a fuzzy string matching algorithm
+		can mention parts of words or phrases
+----------------------------------------------------------------------------------------		
+		
+	#check helm is working
+	helm
+		#this will print lot of information including
+			default configuration path
+			default cache path
+			default data path
+----------------------------------------------------------------------------------------		
+
+		https://artifacthub.io
+			search for mysql 
+			
+		-> helm search hub wordpress
+		
+		
+		
+		#This would search it in the artifacthub (similar to docker hub)
+		
+		There are multiple chart repo's available publicly
+			helm search repo (not hub)
+
+		But if you want to search in other repo's you should add them
+
+			https://artifacthub.io
+				search nginx 
+					select Bitnami 
+						follow the site 
+						-> #helm repo add bitnami https://charts.bitnami.com/bitnami
+						-> #helm install nginx bitnami/nginx
+						-> helm install my-release oci://registry-1.docker.io/bitnamicharts/nginx
+						-> kubectl get all
+					many objects
+
+			Repository added will go the cache.
+			location of cache can be seen by executing 
+				-> helm
+					cache directory
+						everything that you install goes here
+
+
+		To find list of repo's added
+			helm repo list
+		
+	
+	Search Redis in the repo already added.
+		helm search repo wordpress
+		helm search repo redis		
+		Sometimes you may find more than one chart provider for the common applications.
+			
+	
+	Find more details of the chart by
+		helm show chart bitnami/redis
+			
+			and further details can be found by
+		helm show readme bitnami/redis
+		#Above commands are like inspect of image	
+-------------------------------------------------------------------------------------------------		
+
+	
+	Update the repo to ensure you get the latest chart version:
+		helm repo update #Similar to apt update or yum update.
+	
+	Create a namespace for the installation target.
+		kubectl create namespace helm
+		
+	List installed charts in the repo.
+		helm list
+		
+	Deploy a chart to a cluster if you know the name
+		helm repo add bitnami https://charts.bitnami.com/bitnami
+			bitnami: my label - can be any name.
+			
+		helm repo update
+			like yum update
+		Helm will return before the command is done.
+		
+	With the install command Helm can launch the required 
+		deployments, 
+		ReplicaSets, 
+		Pods, 
+		Services, 
+		ConfigMaps, 
+		or any other Kubernetes resource the chart defines. 
+	
+	List all installed charts.
+		helm list --all-namespaces #in all ns
+			or
+		helm ls -n helm #in redis ns
+		
+	
+	Helm deploys all the pods, replication controllers and services. 
+	The pod will be in a pending state until 
+		the container image is downloaded and 
+		a Persistent Volume is available. 
+
+	Let's find what was deployed.
+	Once complete it will move into a running state.
+		watch kubectl get deployments,pods,services -n helm
+		watch kubectl get all -n helm
+		
+		Control/Command + C
+-----------------------------------------------------------------------------------	
+	Now Dashboard should change to running
+		watch kubectl get deployments,pods,services -n helm
+		
+	Now we have successfully installed Redis cluster.
+		Note that this is not a single service or object.
+		A group of objects were all deployed using a single command.
+		
+	
+	Now we can delete this installation by
+		helm delete dashboard-demo -n helm
+		helm uninstall 
+
+		
+-------------------------------------------------------------------------------------------------
+
+	kubectl apply -f mysql-pv.yml
+	kubectl apply -f mysql-pvc.yml
+	helm install mysql bitnami/mysql --values mysql-values.yml
+
+what a chart provides,
+	Within repo's there may be many charts. 
+	
+	The current count of charts can be found by
+		echo "The number of charts is: $(helm search repo | wc -l)."
+		
+	Following are a bunch of charts you may want to leverage
+			
+		helm search repo sonarqube
+		helm search repo rabbitmq
+		helm search repo kafka
+		helm search repo prometheus-operator
+		helm search repo tensorflow
+		helm search repo stable/redis
+
+	Search for charts on the Helm Hub by changing the above repo to hub.
+		echo "The number of charts is: $(helm search hub | wc -l)."
+
+
+	Charts in stable repo can be seen by doing
+		helm search repo stable | sed -E "s/(.{27}).*$/\1/"
+
+	Charts in Helm Hub can be listed using.
+		helm search hub --max-col-width=80 | sed -E "s/(.{70}).*$/\1/"
+
+
+	Many other repositories are available that can be added to Helm. 
+	If your chart is in a Github account, 
+		the location can be registered to Helm so it can pull the chart from that source.
+
+	If you search Helm for fabric8, nothing will be listed.
+		helm search repo fabric8
+		helm search repo nginx	#not our nginx until you add bitnami
+
+	This is because fabric8 maintains its own chart repository. Their repository can be added to Helm.
+		helm repo add fabric8 https://fabric8.io/helm
+		helm repo add bitnami https://charts.bitnami.com/bitnami
+		
+		
+	With this the repo will appear in the repo list.
+		helm repo list
+
+	Now, fabric8 charts can be listed.
+		helm search repo fabric8
+		helm search repo nginx #bitnami/nginx
+
+	N.B: repo is not on your local machine. It is just a metadata with a link to the real repo.
+	To get helm on your local machine.
+	helm pull bitnami/nginx --untar=true
+
+	Incubator Charts
+		There are also dozens of public incubator charts. Add the incubator repo.
+
+		helm repo add incubator https://kubernetes-charts-incubator.storage.googleapis.com/
+
+		Explore the incubating charts. 
+
+			helm search repo | grep -c 'incubator/'
+
+-------------------------------------------------------------------------------------------------
+how to create a custom chart,
+
+	Charts are helpful when creating your unique solutions. 
+	Application charts could be a combination on 
+		3rd party public charts 
+		and our own charts.
+
+	Let's create our own chart
+		helm create app-chart
+
+		ls 
+			to see the new folder app-chart
+		
+		cd to each folder
+
+Package Structure
+------------------------------------------------
+	pkg-name
+		charts/
+			- Manually managed chart dependencies
+		templates/ 
+			- Template files like deployment, service and others.
+			- Combined with config values from values.yml and command line i/p.
+			- Rendered into kubernetes manifest file.
+			
+		chart.yaml 
+			- Metadata data of charts like	
+				Chart name
+				Maintainer ect.
+		values.yaml
+			- Default configuration values.
+		requirements.yaml
+			- List charts dependencies.
+			- Dynamically down while executing helm instructions.
+		
+			
+		.helmignore
+		LICENSE
+		README.md
+------------------------------------------------
+	templates/
+		_helpers.tpl
+		
+------------------------------------------------		
+			
+		
+
+	All of your Kubernetes resource definitions in YAML files are located in the templates directory. 
+	vi  app-chart/templates/deployments.yaml.
+
+	Charts can be validated before we release using
+	helm lint ./app-chart/	#app-chart should be in your current directory.
+
+	Normal deployment YAML with the kind: Deployment defined. 
+		There is new syntax of double braces {{ .. }}. 
+		This is the templating mechanism that Helm uses to inject values into this template. 
+		
+		N.B: The templating language has many features by leveraging the Go templating API.
+
+
+	The image name can be injected into the deployment.yaml
+		cat app-chart/templates/deployment.yaml | grep 'image:' -n -B3 -A3
+			#grep's for image with 3 lines before and after
+
+		{{ .Values.image.repository }}: container name gets injected here. 
+		These values have defaults typically found in the values.yaml file in the chart directory.
+
+		Templating key uses the dot ('.') notation to navigate and extract the values from the hierarchy in the values.yaml.
+
+
+		cat app-chart/values.yaml | grep 'repository' -n -B3 -A3
+		Helm image is defaulted to nginx
+		
+		This is a self sufficient chart with all values having some defaults.
+
+		A complete set of sensible defaults is a good practice for any chart you author. 
+		Ideally you shoudl have a README for your chart 
+			with a table to reflect these defaults, options, and descriptions.
+
+		Before deploying to Kubernetes, 
+			Use the dry-run feature will list out the resources to the console. 
+			This allows you to inspect the injection of the values into the template without committing an installation, 
+				a helpful development technique. 
+				
+			helm install my-app ./app-chart --dry-run --debug | grep 'image	: "' -n -B3 -A3
+			helm install my-app ./app-chart --dry-run --debug | grep 'repository' -n -B3 -A3
+	
+	
+
+
+		Notice the ImagePullPolicy is set to the default of IfNotPreset. 
+		Before we deploy the chart we could modify the values.yaml file and change the policy value in there, 
+
+		For saving time, let's modify the ImagePullPolicy from IfNotPreset to Always using the command.
+
+		helm install my-app ./app-chart --dry-run --debug --set image.pullPolicy=Always | grep 'image: "' -n -B3 -A3
+
+		Let's install with version injecting correctly.
+
+		helm install my-app ./app-chart --set image.pullPolicy=Always
+
+	Verify the installation
+
+		helm list
+		watch kubectl get deployments,service
+
+
+
+	Notice the service type is ClusterIP. 
+	To see the Nginx default page we would like to instead expose it as a NodePort. 
+	Let's modify this in the values.yaml
+	Use the Helm upgrade command to modify the deployment.
+
+	helm upgrade my-app ./app-chart --install --reuse-values --set service.type=NodePort
+	
+	Instead you can modify the values.yaml and do 
+	helm upgrade my-app ./app-chart --install 
+
+	kubectl get svc 
+	#access it now.
+	
+	
+	helm uninstall my-app
+	
+	
+	
+### Chart repositories and registeries
+	Charts are maintained in repositories
+	Registeries - OCI container registeries like dokerhub.
+		images are maintained in registeries
+		
+
+###Plugins 
+https://jhooq.com/helm-chart-plugin/
+		
+		
+		
+### Create our own chart
+	https://phoenixnap.com/kb/create-helm-chart
+	
+	
+-------------------------------------------------------------------
+Lab: 
+	(a) Add a configmap from my configmap folder to template section 
+		configmap.yml 
+	do a dry run and confirm config map is also appearing
+	create and see if it reflects
+	
+	helm support reading and replacing templates variables with
+		built-in objects
+		values 
+		(more details below)
+	
+	(b) built-in-objects
+		Check https://helm.sh/docs/chart_template_guide/builtin_objects/ for what other values it can take
+		.Release.Name: name i provided during install/create command
+	
+	more lab after below explanation
+----------------------------	
+Using variables in Helm templates is a fundamental aspect of creating flexible and reusable Helm charts. Variables allow you to parameterize your templates, making them adaptable to different environments and configurations. Here's an overview of how to use variables in Helm templates:
+
+    Defining Variables in values.yaml:
+
+    The primary way to define variables in Helm is by using the values.yaml file associated with your chart. This file contains a YAML structure where you can define various values that can be customized for each deployment. For example:
+
+    
+# values.yaml
+replicaCount: 3
+image:
+  repository: myapp
+  tag: latest
+
+Accessing Variables in Templates:
+---------------------------------
+	In your Helm templates, you can access the values defined in values.yaml using the .Values object. For instance, if you want to use the replicaCount and image values in a Deployment template:
+
+
+# deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp-deployment
+spec:
+  replicas: {{ .Values.replicaCount }}
+  template:
+    spec:
+      containers:
+        - name: myapp-container
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+
+Using Variables in Conditionals:
+-------------------------------
+	You can use variables to control the flow of your templates. For example, if you want to enable certain components based on a condition:
+
+	{{- if .Values.enableFeatureX }}
+	# Include components related to Feature X
+	{{- end }}
+
+Override Variables During Deployment:
+------------------------------------
+	When you install or upgrade a chart, you can override specific values from the values.yaml file using the --set flag or by providing a custom YAML file. For instance:
+
+	helm install my-release ./my-chart --set replicaCount=5
+
+Using Variables in Loops:
+-------------------------
+	Helm supports range loops, allowing you to iterate over lists or maps. This is useful for creating multiple instances of resources based on the number of items in a list or keys in a map.
+
+
+		{{- range $index, $item := .Values.extraContainers }}
+		# Create additional containers based on values in extraContainers
+		{{- end }}
+
+		Functions for Complex Operations:
+
+		Helm provides functions that allow you to perform various operations on variables, like manipulating strings, performing arithmetic, and more.
+
+Remember that the structure of your templates and the variables you define will depend on your specific use case and the resources you're deploying. By using variables effectively, you can create Helm charts that are easy to configure and reuse across different environments while minimizing duplication and promoting consistency.	
+----------------------------
+	(c) create a new yml file with  value value.yml with value 
+	
+myvariable: value 
+add configmap2.yml in templates folder 
+	
+	helm install myreleasename ./myfoldername --values values.yml
+	
+	(d)
+	helm install <releasename> ./foldername --set myvariable=myvalue
+	helm get manifest <releasename>
+	
+	(e) functions
+	
+	
+	
+-------------------------------------------------------------------	
+	
+Additional content
+------------------
+
+Hooks
+-----
+
+Helm provides a hook mechanism to allow chart developers to intervene at certain points in a release's life cycle. For example, you can use hooks to:
+
+    Load a ConfigMap or Secret during install before any other charts are loaded.
+    Execute a Job to back up a database before installing a new chart, and then execute a second job after the upgrade in order to restore data.
+    Run a Job before deleting a release to gracefully take a service out of rotation before removing it.
+
+Hooks work like regular templates, but they have special annotations that cause Helm to utilize them differently. In this section, we cover the basic usage pattern for hooks.	
+
+
+https://helm.sh/docs/topics/charts_hooks/
+
+These are coded inside the templates folder
+
+
+Plugins
+-------
+https://helm.sh/docs/topics/plugins/
+
+
+------------------------------
+
+harness
+https://github.com/harness/harness-cd-community/tree/main/helm

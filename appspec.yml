@@ -1,0 +1,17 @@
+version: 0.0
+os: linux
+
+files:
+  - source: k8s/
+    destination: /opt/k8s/
+
+hooks:
+  BeforeInstall:
+    - location: scripts/cleanup.sh
+      timeout: 180
+      runas: root
+
+  AfterInstall:
+    - location: scripts/apply_manifests.sh
+      timeout: 300
+      runas: root

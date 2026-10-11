@@ -1,0 +1,84 @@
+Step 1: Give permission 
+
+eksctl utils associate-iam-oidc-provider --region <region> --cluster <cluster-name> --approve
+
+eksctl create iamserviceaccount \
+  --region <region> \
+  --name ebs-csi-controller-sa \
+  --namespace kube-system \
+  --cluster <cluster-name> \
+  --attach-policy-arn arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy \
+  --approve
+kubectl apply -k "github.com/kubernetes-sigs/aws-ebs-csi-driver/deploy/kubernetes/overlays/stable/ecr/?ref=release-1.12"
+
+
+
+Step 2: Create a StorageClass
+Define a StorageClass for dynamic provisioning. This example uses the gp2 EBS volume type:
+
+
+
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ebs-sc
+provisioner: ebs.csi.aws.com
+parameters:
+  type: gp2
+  fsType: ext4
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
+
+
+
+Apply the file:
+kubectl apply -f storageclass.yaml
+
+
+
+Step 3: Create a PersistentVolumeClaim (PVC)
+Request storage dynamically using a PersistentVolumeClaim:
+
+--------------------------------------------
+#Please note while creating below pvc, it will not create a pv as by default it is in a mode where pv get's created only when the first pod is created.
+--------------------------------------------
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ebs-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: ebs-sc
+
+
+Apply the file:
+kubectl apply -f pvc.yaml
+
+
+
+Step 4: Use the PVC in a Pod
+Attach the dynamically provisioned volume to a pod:
+
+
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ebs-app
+spec:
+  containers:
+  - name: app
+    image: nginx
+    volumeMounts:
+    - mountPath: "/usr/share/nginx/html"
+      name: ebs-volume
+  volumes:
+  - name: ebs-volume
+    persistentVolumeClaim:
+      claimName: ebs-pvc
+

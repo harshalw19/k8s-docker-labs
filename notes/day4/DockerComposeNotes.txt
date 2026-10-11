@@ -1,0 +1,562 @@
+##############################################################################################
+
+	Docker Compose
+
+##############################################################################################
+
+Reference: https://docs.docker.com/compose/
+Reference: https://www.educative.io/blog/docker compose-tutorial
+
+Create an ubuntu instance 
+	install docker as usual 
+		docker compose may work.
+		if it doesn't work follow 
+			https://docs.docker.com/compose/install/linux/
+
+
+Latest version was not stable 
+So reverted to 
+	sudo curl -L "https://github.com/docker/compose/releases/download/1.26.2/docker compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+-------------------------------------------------------------------
+Install Docker Compose
+
+https://docs.docker.com/compose/install/
+
+	sudo curl -L "https://github.com/docker/compose/releases/download/1.27.4/docker compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker compose
+	sudo chmod +x /usr/local/bin/docker compose
+	sudo ln -s /usr/local/bin/docker compose /usr/bin/docker compose
+	
+	#General instruction. 
+	docker compose up # expects a file named docker compose.yml or docker compose.yaml
+	docker compose down
+	docker compose --volumes #remove active volumes also
+----------------------------------------------------------
+Compose 
+	Tool 
+		combine multiple images/live applicatons together into a single file.
+		both build and run an application using a single command.
+		
+	YAML file is used to configure application’s services. 
+	Create and start all the services from configuration with a single command. 
+	Create/Recreate dev. environments easily
+	An open specification
+	
+	cd docker-k8s
+	docker compose -f dc1.yaml up -d
+	docker compose -f dc1.yaml down 
+	
+	
+	
+Compose works in all environments: 
+	production, 
+	staging, 
+	development, 
+	testing, 
+	as well as CI workflows.
+----------------------------------------------------------------------------------	
+Three-step process in Compose:
+	Define services that participate in docker compose.yml
+	For services 
+		that are picked from image: define image name
+		that are from live application: 
+			define Dockerfile and application context
+	Run docker compose up 
+		Compose starts and runs your entire app.	
+
+
+--------------------------------------------------------------------
+docker-compose up
+	Here's the sequence of steps that typically occur when you run docker-compose up:
+
+    Parsing and Validation:
+		Docker Compose 
+			reads  
+			parses 
+				docker-compose.yml file 
+	identify 
+		services, 
+		networks, 
+		volumes
+		other configurations defined in the file. 
+		basic validation to ensure the syntax is correct.
+
+    Building Images (if needed):
+		If build context to Dockerfile is provided
+			Docker Compose starts building the images for the services that require it. 
+			It uses the specified build context and Dockerfile to create the images.
+
+    Pulling Images (if needed):
+		If your services are defined with the image configuration and the specified images are not available locally, Docker Compose pulls the images from a registry (usually Docker Hub) before proceeding.
+
+    Creating Networks:
+		Creates any custom networks defined in the networks section 
+		If no custom network 
+			create default bridge network based on the folder name.
+
+    Starting Containers:
+		Starts the containers 
+			use 
+				specified images 
+			or 
+				built images. 
+		Creates container for each service 
+			include 
+				environment variables, 
+				ports, 
+				volumes, 
+				network 
+				dependency etc.
+
+    Linking Containers to Networks:
+		Each container is connected to the appropriate networks based on the networks configuration in the docker-compose.yml file. This enables communication between services using service names as hostnames.
+
+    Running Initialization Commands:
+		If you've specified initialization commands using the command key in the docker-compose.yml file, Docker Compose executes these commands within the containers.
+
+    Monitoring and Logging:
+		Docker Compose continuously monitors the output and logs of the containers, showing their standard output and error streams in the terminal.
+
+    Foreground or Background Mode:
+		By default, docker-compose up runs in the foreground, keeping the terminal attached to the containers' output. You can use the -d flag to run the containers in detached (background) mode.
+
+    Ctrl-C or Manual Stopping:
+		If you're running in the foreground, you can stop the containers by pressing Ctrl-C in the terminal. If you're running in detached mode, you can use docker-compose down to stop and remove the containers, networks, and optionally volumes.
+
+	
+----------------------------------------------------------------------------
+docker compose down
+    Containers: 
+		All containers that were created by docker-compose up are stopped and removed.
+
+    Networks: 
+		Any networks that were created by docker-compose up are removed.
+
+    Unnamed Volumes: 
+		Volumes that were created without a specific name (using the syntax - /path/to/volume in the volumes section) are removed. These are typically temporary volumes used by the containers.
+
+    Named Volumes (NOT REMOVED): 
+		Named volumes are NOT removed by default when you run docker-compose down. This is to preserve data stored in named volumes between restarts and deployments.
+
+If you want to remove named volumes as well when running docker-compose down, you can use the -v or --volumes flag:
+
+docker-compose down -v
+--------------------------------------------------------------------
+
+
+----------------------------------------------------------------------------------	
+Compose has commands for managing the whole lifecycle of your application:
+	Start, stop, and rebuild services
+	---------------------------------
+	For dc1.yaml execution you should be in docker-k8s folder	
+		Create and start containers, network and volume
+			docker compose up
+				build images
+				check image is present locally
+					if not present download images
+				launch container
+				By default creates network (even if we don't specify)
+					Containers in this network can refer by name 
+						(as hostname in accessing code).
+					
+			docker compose -f dc1.yaml up
+			
+		Stop and remove containers, networks, [images?], and volumes
+			docker compose down
+				stop container 
+				remove container
+			docker compose -f dc1.yaml down
+		
+		Build or rebuild services
+			docker compose build
+			docker compose -f dc1.yaml build
+			
+		Starts existing containers for a service. docker start
+			docker compose start
+			docker compose -f dc1.yaml start
+			
+		Graceful stop and remove	
+			docker compose stop
+			docker compose rm
+		
+	------------------------------------------------------------------	
+		N.B: docker compose 	up Vs start Vs run
+		
+		Builds, (re)creates, starts, and attaches to containers for a service.
+
+		Unless they are already running, this command also starts any linked services.
+
+		docker compose up 
+			Use up to 
+				Build and start or restart all the services 
+					defined in a docker compose.yml. 
+			Default “attached” mode, 
+					you see all the logs from all the containers. 
+			“detached” mode (-d), 
+				docker compose up -d
+				Compose exits after starting the containers, 
+				containers continue to run in the background.
+			If there are 
+				existing containers for a service, and 
+				service’s configuration or image was changed 
+					after the container’s creation, 
+				docker compose up 
+					picks up the changes by stopping and recreating the containers 	
+						(preserving mounted volumes). 
+					To prevent Compose from picking up changes
+						use the --no-recreate flag.
+		
+		docker compose run command 
+			run “one-off” or “adhoc” tasks. 
+			It requires 
+				service name you want to run 
+					only starts containers for services that the running service depends on. Use run to 
+						run tests or 
+						perform an administrative task 
+							e.g. remove or add data to a data volume container. 
+			Acts like docker run -it 
+				opens an interactive terminal to the container 
+				returns an exit status matching the exit status of the process in the container.
+			Run will not do a port mapping (mentioned in docker compose file)
+			So if there is already a container running (from up), 
+				run would still be successful
+		
+		docker compose start command 
+			useful only to restart containers 
+				previously created, 
+					but were stopped. 
+					It never creates new containers.
+		
+		N.B: docker compose up Vs start Vs run ends
+			Summary: 
+				start and run are docker equivalent.
+				up can build and run.
+		------------------------------------------------------------------
+	View the status of running services
+	-----------------------------------
+		List containers
+			docker compose -f dc1.yaml ps
+
+		
+		
+	Stream the log output of running services
+	-----------------------------------------
+		View output from containers
+			docker compose logs	
+																					docker compose -f dc1.yaml logs
+	
+	Run a one-off command on a service
+	---------------------------------
+	Validate and view the Compose file
+		docker compose config
+		docker compose -f dc1.yaml config
+	
+	Create services #Deprecated
+		docker compose create 
+		docker compose -f dc1.yaml create
+		
+	List containers
+		docker compose ps
+		docker compose -f dc1.yaml ps
+		
+	Receive real time events from containers
+		docker compose events
+		docker compose -f dc1.yaml events
+
+	#The below is not working. Use docker exec instead.
+	Execute a command in a running container
+		docker compose exec
+		docker compose -f dc1.yaml exec
+		docker compose -f dc1.yaml exec docker-k8s_web_1 bash #docker compose ps
+
+	Example of execute a command	
+		ExampleOfCommand.txt
+		
+----------------------------------------------------------------------------------		
+
+Docker Compose Features 
+-----------------------	
+Multiple isolated environments on a single host
+Preserve volume data when containers are created
+Only recreate containers that have changed
+
+
+Multiple isolated environments on a single host
+	Compose uses project name to isolate environments from each other. 
+	This project name can be used in several different contexts:
+		On a dev host, 
+			to create multiple copies of a single environment
+				run a stable copy for each feature branch of a project
+		on a CI server, to keep builds from interfering with each other, you can set the project name to a unique build number
+		on a shared host or dev host, to prevent different projects, which may use the same service names, from interfering with each other
+		The default project name is the basename of the project directory. 
+		Set a custom project name 
+			by using the -p command line option 
+			or the COMPOSE_PROJECT_NAME environment variable.
+
+Preserve volume data when containers are created
+	Compose preserves all volumes used by your services. 
+	When docker compose up runs, 
+		if it finds any containers from previous runs, 
+		it copies the volumes from the old container to the new container. 
+		This process ensures that any data you’ve created in volumes isn’t lost.
+
+If you use docker compose on a Windows machine, 
+	see Environment variables and adjust the necessary environment variables for your specific needs.
+
+Only recreate containers that have changed
+	Compose caches the configuration used to create a container. 
+	When you restart a service that has not changed, 
+		Compose re-uses the existing containers. 
+	Re-using containers means that you can make changes to your environment very quickly.
+	
+	docker compose start service
+	docker compose build --no-cache nginx 
+	docker compose up --build
+	docker compose up --build <service_name> #start linked services too
+	docker compose up -d --no-deps --build <service_name> #don't start linked service
+		--no-deps - Don't start linked services.
+		--build - Build images before starting containers.
+		
+	Version before 1.19
+		docker compose build service1 service2 --no-cache does this job better (github.com/docker/compose/issues/1049). I had issue with cached containers that were built before using docker compose up -d --no-deps --build
+	From 1.19
+		docker compose up --build --force-recreate --no-deps [-d] [<service_name>..]
+
+
+			-d, --detach        Detached mode: Run containers in the background,
+                        print new container names. Incompatible with
+                        --abort-on-container-exit.
+			--no-deps           Don't start linked services.
+			--force-recreate    Recreate containers even if their configuration
+								and image haven't changed.
+			--build             Build images before starting containers.
+	
+
+Variables and moving a composition between environments
+	Compose supports variables in the Compose file. 
+	You can use these variables to customize your composition for 
+		different environments, 
+	or 
+		different users. 
+You can extend a Compose file using the extends field or by creating multiple Compose files. 	
+
+Docker Compose Use Cases
+------------------------
+1. On dev. env.
+	You need a single instance of services.
+	Everything getting created using a single file
+2. Single Host deployments
+3. Automated testing environments
+
+
+----------------------------------------------------------------------------
+depends_on 
+
+	depends_on 
+		specify dependencies between services in your application. 
+		default: services start in parallel
+		define startup order of services
+		depends_on 
+			does not wait for services to be fully operational
+			instead controls the sequence in which services are started.
+
+Here's how the depends_on key works:
+
+yaml
+
+version: '3'
+services:
+  app:
+    image: myapp
+    depends_on:
+      - db
+      - cache
+
+  db:
+    image: postgres:13
+
+  cache:
+    image: redis:latest
+
+
+    condition: service_started (default):
+		default behavior. 
+		The dependent service starts 
+			as soon as its dependency container starts running
+				regardless of whether the dependency is fully operational or healthy.
+
+    condition: service_healthy:
+		Dependent service starts only after the dependency's health check passes. 
+		This condition ensures that the dependency is both running and in a healthy state.
+
+    condition: service_healthy + timeout:
+		You can combine the service_healthy condition with a timeout value to specify how long the dependent service should wait for the dependency to become healthy before timing out and starting anyway.
+
+    condition: service_completed_successfully:
+		The dependent service starts after the dependency has completed its execution with a successful exit status (exit code 0).
+
+    condition: service_failed:
+		The dependent service starts after the dependency has completed its execution, regardless of the exit status. This includes cases where the dependency failed (exit code other than 0).
+
+    condition: service_stopped:
+		The dependent service starts after the dependency container is stopped, regardless of the reason for stopping (manual, error, etc.).
+
+
+version: '3'
+services:
+  app:
+    image: myapp
+    depends_on:
+      db:
+        condition: service_healthy
+      worker:
+        condition: service_completed_successfully
+
+  db:
+    image: postgres:13
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 10s
+      retries: 3
+
+  worker:
+    image: workerapp
+    command: ["./run_worker.sh"]	
+
+
+--------------------------------------------------------------------
+Exercises
+	1. cd docker-k8s/
+		docker compose -f dc1.yaml up
+		http://13.232.1.89:8080/
+		
+		docker compose -f dc1.yaml down
+		
+		More examples refer 
+			https://docs.docker.com/compose/gettingstarted/
+		
+End to end exercise on docker compose
+
+
+		
+--------------------------------------------------------------------
+
+
+
+https://github.com/dockersamples/example-voting-app (working)
+Forked to 
+https://github.com/vilasvarghese/example-voting-app (not working)
+
+Refer the notes
+The app will be running at 
+	http://localhost:5000, and the results will be at 
+	http://localhost:5001.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`
+Following example is deprecated because Voting app seems to be a much better example for students to understand
+
+
+Pick exercise from 
+https://wkrzywiec.medium.com/how-to-run-database-backend-and-frontend-in-a-single-click-with-docker compose-4bcda66f6de
+
+Forked from https://github.com/wkrzywiec/kanban-board.git
+
+Docker compose from active application
+
+	cd docker-k8s
+	docker compose -f dc1.yaml up
+	docker compose -f dc1.yaml down
+
+Docker compose from image
+
+	cd docker-k8s
+	docker compose -f dc2.yaml up
+	docker compose -f dc2.yaml down
+
+Includes
+	kanban-postgres— 
+		PostgreSQL database,
+	kanban-app — 
+		Java based application
+		It connects to database 
+		expose REST endpoints
+		Written with Spring Boot,
+	kanban-ui — 
+		Angular
+		frontend application
+		it consumes the REST endpoints provided by the backend service.
+
+	git clone https://github.com/wkrzywiec/kanban-board.git
+	or 
+	git clone https://github.com/vilasvarghese/kanban-board.git
+			
+	
+	cd kanban-board
+	docker compose up
+	
+	N.B: This will not completly work because data is not populated.
+	
+	Once deployed frontend can be seen in a browser with a link: 
+		http://localhost:4200
+		
+	Swagger UI page, and which is reachable from the url: 
+		http://localhost:8080/api/swagger-ui.html.
+		
+	docker compose down
+
+
+		version: `3.8` — 
+			version of a Compose file
+				Latest version of compose is in https://docs.docker.com/compose/compose-file/
+		services: — 
+			define services after this
+			We have 3 services
+-------------------------------------------------			
+	image: "postgres:9.6-alpine"#Image we are using in this service.
+		container_name: kanban-postgres #Container name
+    volumes:
+      - kanban-data:/var/lib/postgresql/data #Data would come from here.
+    ports:
+      - 5432:5432 #Port we are attaching.
+    environment:
+      - POSTGRES_DB=kanban #Db
+      - POSTGRES_USER=kanban #User
+      - POSTGRES_PASSWORD=kanban #Pwd
+-------------------------------------------------
+  kanban-app: #Define next service. 
+    build: ./kanban-app #Docker wil build from the Dockerfile inside this folder. 
+    container_name: kanban-app #Container name.
+    environment:
+      - DB_SERVER=kanban-postgres  #Server- same as container name above.
+      - POSTGRES_DB=kanban #DB
+      - POSTGRES_USER=kanban #User
+      - POSTGRES_PASSWORD=kanban #Password
+    ports:
+      - 8080:8080 #Port
+    links:
+      - kanban-postgres #links to this.
+			
+	N.B: Refer the dockerfile inside kanban-app
+		It's an interesting Dockerfile
+		
+		
+		
+-------------------------------------------------
+Application.properties.
+spring.datasource.url=jdbc:postgresql://${DB_SERVER}/kanban
+spring.datasource.username=kanban
+spring.datasource.password=kanban
+spring.liquibase.change-log=classpath:/db/changelog/db.changelog-master.xml
+
+-------------------------------------------------		
+	
+	http://localhost:8080/api/swagger-ui.html.
+
+Deprecated example ends	
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~	
+################################################################################################
+
+	Docker Compose
+
+################################################################################################

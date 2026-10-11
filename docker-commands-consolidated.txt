@@ -1,0 +1,342 @@
+1. docker run hello-world
+
+	Create a hello-world container 
+	hello-world: image name 
+
+2. docker images #docker image ls
+
+	docker run -p 80:80 nginx
+		publish/port-forward  container port to host port 
+	docker ps
+		display running containers
+	docker stop <id>
+		gracefully stop a container
+	docker ps -a
+		display stopped and running containers 
+	docker rm #docker container rm
+		remove contaner 
+		also remove writable layer of container 
+			/var/lib/docker/containers/<container id>
+	docker image ls #docker images
+		display all images 
+	docker image rm <id>#docker rmi <id>
+		remove image 
+		all dependent containers and images should be removed before doing this.
+		
+	docker run nginx # stuck
+	Ctrl + c
+	docker run -d nginx
+		start container in detached mode
+	docker ps
+		
+	docker attach <id>
+		attach will attach to process 1 
+################################################
+Important command in Docker 
+
+docker
+#lists all docker commands
+docker <command> --help
+
+################################################
+	
+	
+#################################################
+Difference between attach and exec
+
+If we use docker attach, we can use only one instance of shell.
+So if we want to open new terminal with new instance of container's shell, we just need to run docker exec
+
+if the docker container was started using /bin/bash command, you can access it using attach, if not then you need to execute the command to create a bash instance inside the container using exec.
+
+Attach isn't for running an extra thing in a container, it's for attaching to the running process.
+"docker exec" is specifically for running new things in a already started container, be it a shell or some other process.
+
+While attach is not well named, particularly because of the LXC command lxc-attach (which is more akin docker exec <container> /bin/sh, but LXC specific), it does have a specific purpose of literally attaching you to the process Docker started.
+Depending on what the process is the behavior may be different, for instance attaching to /bin/bash will give you a shell, but attaching to redis-server will be like you'd just started redis directly without daemonizing.
+
+Vilas : Attach tries to attach to process 1 where as exec executes a new process which you specify.
+#################################################	
+3. docker image rm <image id> -f
+	forcefully remove 
+
+4. docker search ubuntu
+	search for a image in the repository - e.g. dockerhub 
+
+5. docker pull ubuntu
+	pull image 	
+
+6. docker images
+	docker inspect image
+		display the details of the image 
+			e.g. layers in the data section 
+			
+7. docker run ubuntu
+	docker ps
+	docker ps -a
+	docker rm <id>
+	
+
+	docker run -it ubuntu bash
+		create a new ubuntu container and get inside it (interactive - terminal access)
+	Output
+	root@7624b390cb6b:/# 
+	#attached mode.
+	
+	-> apt-get update
+	-> apt-get install iputils-ping
+		install ping 
+	
+	------------------------------
+	watch du -sh <folder name>
+	-------------------------------
+
+	ls -w
+	watch ls 
+	watch -n 1 ls 
+		repeat the execution 
+	
+8. open new terminal 
+	docker ps
+	docker ps -l
+	exit the container
+	docker ps #oops gone?
+	docker ps -a #no worries i found
+	docker start <container id>
+		start a stopped container 
+	docker exec -it <container id> /bin/sh
+		get inside a container by starting a new instance of /bin/sh 
+	mkdir vilas
+		
+	cd vilas
+	echo Hello World > first-file.txt
+	exit
+	docker ps
+	
+	alternatively we can do
+	docker exec -it <first 4/5 char of container id> /bin/sh
+		
+	docker stop <name>
+	docker start <name>
+	docker pause <name>
+	docker unpuase <name>
+	docker restart <name>
+
+10. Let's install some software in this - may be openjdk
+	su
+	apt-get update
+	apt-get install openjdk-8-jdk
+	
+
+11. docker commit -m "What you did to the image" -a "Author Name" container_id repository/new_image_name
+	e.g - docker commit -m "Ubuntu with Java" -a "Vilas" 7624b390cb6b vilasvarghese/added_java	
+	-m is the message and -a is the author.
+	
+	
+		or 
+	docker commit <<container id> <<docker hub username>>/<<image name>>
+	
+	e.g malla
+	docker commit -m "what is comming" 23o482o3023 vilasvarghese/abc-xyz
+	docker images
+		- malla/abc-xyz
+
+	docker images 
+	this will show two different images.
+
+12. docker login -u docker-hub-username
+
+13. docker tag <image name or rep name> docker-registry-username/image-name
+	or docker tag <image id> docker-hub-username/image-name
+
+14. docker push docker-registry-username/image-name
+		docker search <repo name>
+		docker search image # delayed with indexing.
+		#New feature added "Public View". Click on this and search may start working.
+
+15. docker ps
+
+16. docker stop <container id>
+
+17. docker start <container id>
+
+18. docker exec -it <container id> /bin/bash
+	docker pause <container id>
+	docker ps
+	-interactive mode is stuck
+
+19. docker container prune -f # will kill only those containers which are not active now.
+	remove all stopped containers
+
+20. docker container inspect <container id>
+	display the details of the running container 
+		e.g. see which network it is attached and what is it's ip 
+		
+		
+--------------------------------------------------------------------
+Dockerfile commands 
+
+FROM
+	- defines the base layer/base image for the this image
+	- mandatory command
+	- multiple FROM supported 
+		- this would be for multi-stage image building 
+	- From can be like 
+		FROM <IMAGE>:<TAG> .e.g. FROM UBUNTU:LATEST
+		FROM <IMAGE> 
+		FROM <IMAGE>:$ARGS
+		
+RUN
+	- Execute the command
+		- while image is build
+	- Check in back to image
+	- New layer could be created 
+	- 2 types
+			- command
+				- ["executable", "param", "param2"]
+					RUN ["/bin/bash", "-c", "echo hello"]
+					json array
+	RUN apt update 		
+	- Default is shell
+			
+
+ADD
+	
+COPY
+
+	- Copies new file or directories from context to image
+	- from <src> to <dest>
+	- may contain wildcards
+	- Match - Go’s filepath
+	- <src> : relative to the source 
+	- <dest> : 
+		- absolute path, 
+		- relative to WORKDIR.
+	- <dest> created if missing
+	
+Expose
+	intimates docker runtime about which port the application is listening 
+CMD
+		- adds default command to execute when the container comes up 
+		- can be overridden from command line
+		- Executed when container runs
+		- Only one CMD
+		- If there are multiple CMD
+			- Last one executed
+Entrypoint		
+	- Configures container to run as an executable. 
+	- Execute the command in container.
+	- Override all elements in CMD
+	- Default executed in shell
+	- Only one Entrypoint
+		- Last one
+		
+	Usage:
+		ENTRYPOINT ["<executable>", "<param1>", "<param2>"] (exec form, preferred)
+		
+		ENTRYPOINT <command> <param1> <param2> (shell form)
+
+Volumes
+-------
+	docker run -it -v /vilasvolume:/myvolue ubuntu bash
+		-v is used for attaching a volume 
+		-v 
+			3 pararmeters
+				1st: where on the host machine 
+				2nd: where inside the container 
+				3rd: access type 
+					ro: read only 
+					rw: read write 
+						default 
+
+
+Table reference for subnetting 
+	------------------------------------------------------------------------------------------------------------------
+	Network		1		2		4		8		16		32		64		128		256		(each number = 2* (previous))
+	Host		256		128		64		32		16		8		4		2		1		(each number = (previous) / 2)
+	Subnet Mask	/24		/25		/26		/27		/28		/29		/30		/31		/32		(each number = /(previous+1))
+	------------------------------------------------------------------------------------------------------------------
+						
+	
+Breaking a network - 192.168.4.0/24 into 4 different network 
+	
+	So total IP for host = 64 - 2 = 62.
+------------------------------------------------------------------------------------------------------------------
+	NetworkID			Representation			Host ID Range				Network ID		Broadcast Id
+------------------------------------------------------------------------------------------------------------------
+	192.168.4.0			192.168.4.0/26		192.168.4.1-192.168.4.62		192.168.4.0		192.168.4.63
+	192.168.4.64		192.168.4.64/26			..65-126					192.168.4.64	192.168.4.127
+	192.168.4.128		192.168.4.128/26		..129-190					192.168.4.128	192.168.4.191
+	192.168.4.192		192.168.4.192/26		..193-254					192.168.4.192	192.168.4.255
+------------------------------------------------------------------------------------------------------------------	
+
+docker network create mybrdige
+
+docker run -d --net=mybrdige nginx
+
+to connect to host network 
+docker run --net host --name n1 nginx 
+		
+		
+to connect to none network 
+docker run --net none --name n2 nginx 
+		
+		
+to connect to default bridge network
+docker run -d nginx 
+
+----------------------------------------------------------------------------
+
+working with mysql container 
+
+
+
+docker run -d -e MYSQL_ROOT_PASSWORD=admin -v /home/docker/mysql-data:/var/lib/mysql --name mysqlserver mysql
+
+docker exec -it <container id> /bin/bash
+
+$mysql -u root -p    (Password is admin) 
+
+mysql> CREATE DATABASE /*!32312 IF NOT EXISTS*/`classicmodels` /*!40100 DEFAULT CHARACTER SET latin1 */;
+
+mysql> USE `classicmodels`;
+
+mysql>>CREATE TABLE `customers` (
+  `customerNumber` int(11) NOT NULL,
+  `customerName` varchar(50) NOT NULL,
+  `contactLastName` varchar(50) NOT NULL,
+  `contactFirstName` varchar(50) NOT NULL,
+  `phone` varchar(50) NOT NULL,
+  `addressLine1` varchar(50) NOT NULL,
+  `addressLine2` varchar(50) DEFAULT NULL,
+  `city` varchar(50) NOT NULL,
+  `state` varchar(50) DEFAULT NULL,
+  `postalCode` varchar(15) DEFAULT NULL,
+  `country` varchar(50) NOT NULL,
+  `salesRepEmployeeNumber` int(11) DEFAULT NULL,
+  `creditLimit` decimal(10,2) DEFAULT NULL,
+  PRIMARY KEY (`customerNumber`),
+  KEY `salesRepEmployeeNumber` (`salesRepEmployeeNumber`));
+
+
+
+
+insert  into `customers`(`customerNumber`,`customerName`,`contactLastName`,`contactFirstName`,`phone`,`addressLine1`,`addressLine2`,`city`,`state`,`postalCode`,`country`,`salesRepEmployeeNumber`,`creditLimit`) values 
+(103,'Atelier graphique','Schmitt','Carine ','40.32.2555','54, rue Royale',NULL,'Nantes',NULL,'44000','France',1370,'21000.00'),
+(112,'Signal Gift Stores','King','Jean','7025551838','8489 Strong St.',NULL,'Las Vegas','NV','83030','USA',1166,'71800.00'),
+(114,'Australian Collectors, Co.','Ferguson','Peter','03 9520 4555','636 St Kilda Road','Level 3','Melbourne','Victoria','3004','Australia',1611,'117300.00'),
+(119,'La Rochelle Gifts','Labrune','Janine ','40.67.8555','67, rue des Cinquante Otages',NULL,'Nantes',NULL,'44000','France',1370,'118200.00'),
+(121,'Baane Mini Imports','Bergulfsen','Jonas ','07-98 9555','Erling Skakkes gate 78',NULL,'Stavern',NULL,'4110','Norway',1504,'81700.00'),
+(124,'Mini Gifts Distributors Ltd.','Nelson','Susan','4155551450','5677 Strong St.',NULL,'San Rafael','CA','97562','USA',1165,'210500.00'),
+(125,'Havel & Zbyszek Co','Piestrzeniewicz','Zbyszek ','(26) 642-7555','ul. Filtrowa 68',NULL,'Warszawa',NULL,'01-012','Poland',NULL,'0.00'),
+(128,'Blauer See Auto, Co.','Keitel','Roland','+49 69 66 90 2555','Lyonerstr. 34',NULL,'Frankfurt',NULL,'60528','Germany',1504,'59700.00'),
+(129,'Mini Wheels Co.','Murphy','Julie','6505555787','5557 North Pendale Street',NULL,'San Francisco','CA','94217','USA',1165,'64600.00'),
+(131,'Land of Toys Inc.','Lee','Kwai','2125557818','897 Long Airport Avenue',NULL,'NYC','NY','10022','USA',1323,'114900.00'),
+(141,'Euro+ Shopping Channel','Freyre','Diego ','(91) 555 94 44','C/ Moralzarzal, 86',NULL,'Madrid',NULL,'28034','Spain',1370,'227600.00'),
+(144,'Volvo Model Replicas, Co','Berglund','Christina ','0921-12 3555','Berguvsvägen  8',NULL,'Luleå',NULL,'S-958 22','Sweden',1504,'53100.00'),
+(145,'Danish Wholesale Imports','Petersen','Jytte ','31 12 3555','Vinbæltet 34',NULL,'Kobenhavn',NULL,'1734','Denmark',1401,'83400.00'),
+(146,'Saveley & Henriot, Co.','Saveley','Mary ','78.32.5555','2, rue du Commerce',NULL,'Lyon',NULL,'69004','France',1337,'123900.00'),
+(148,'Dragon Souveniers, Ltd.','Natividad','Eric','+65 221 7555','Bronz Sok.','Bronz Apt. 3/6 Tesvikiye','Singapore',NULL,'079903','Singapore',1621,'103800.00'),
+(151,'Muscle Machine Inc','Young','Jeff','2125557413','4092 Furth Circle','Suite 400','NYC','NY','10022','USA',1286,'138500.00')
+
+

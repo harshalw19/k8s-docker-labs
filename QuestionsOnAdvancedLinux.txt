@@ -1,0 +1,380 @@
+Question 1:		(10 marks)
+	Create 3 subnets of equal size in 192.168.4.0/24 network 	
+	One for engg.	(Eng)
+	One for marketting (mkt)
+	One for HR (HR)
+
+	Answer should be in the format 
+		Div (for Divison)
+		Host ID Range 
+		NetworkID
+		Broadcast ID
+		Representation
+		
+		
+
+
+
+Scenario 2: Port Mapping
+
+A web developer wants to run a new Nginx container and make it accessible to the public internet on the standard HTTP port. They run the following command:
+
+docker run nginx
+
+Question: Why can't the developer access the Nginx web server from their browser? What command should they have used instead to properly map the container's port to the host's port?
+
+
+
+
+
+Scenario 3: Detached Mode
+A DevOps engineer needs to deploy an Nginx container to a production server. They want the container to run continuously in the background without tying up their terminal. They run this command:
+
+docker run nginx
+
+The terminal then shows the Nginx logs, and they can no longer type other commands.
+
+Question: Why did their terminal become unresponsive? What is the correct command they should use to run the container in the background and regain control of their terminal?
+
+
+
+
+
+Scenario 4: Verifying a Running Container
+A system administrator has run two commands:
+
+docker run -p 80:80 nginx
+docker run -d nginx
+
+They now want to see if both containers are still running.
+
+Question: What single command should they run to list all currently running containers and their key details, such as their assigned IDs, names, and port mappings?
+
+
+
+
+
+Scenario 5: Troubleshooting a Failed Container
+A developer runs a container and then checks the status, but the container doesn't appear in the list. They use the following command:
+
+docker run nginx
+docker ps
+
+The docker ps command output is blank.
+
+Question: Why might the container not show up in docker ps? What command can the developer use to view all containers, including those that have stopped or exited, to help them troubleshoot the issue?
+
+
+
+Scenario 6: Building a Python Application
+A developer needs to create a Docker image for a Python application. The application requires Python 3.9 and has several dependencies listed in a requirements.txt file.
+
+Question: What are the two essential commands they must use in their Dockerfile to set up the base environment and install the dependencies?
+
+
+
+
+Scenario 7: Combining Multiple Steps
+A developer is building a container for a Node.js application. They write the following commands in their Dockerfile:
+
+Dockerfile
+
+FROM node:18-alpine
+RUN apt-get update
+RUN apt-get install -y git
+RUN npm install
+Question: This Dockerfile creates multiple layers, which can increase the final image size. How can they refactor these commands to use a single RUN instruction to make the build more efficient?
+
+
+
+Scenario 8: A developer starts a container but it's no longer needed. The container is consuming resources, but the developer might want to restart it later with the same state.
+
+Question: What command should they use to stop the container without permanently deleting it?
+
+
+
+
+Scenario 9: A sysadmin has a list of old, unused containers that are taking up disk space. They need to remove them permanently to free up resources.
+
+Question: What command should they use to delete a stopped container?
+
+
+
+
+Scenario 10: A developer has finished a project and no longer needs a specific Docker image. The image is large and is taking up a significant amount of disk space.
+
+Question: What command should they use to delete the image from their local machine if there are no dependent containers or images?
+
+
+
+Scenario 11: A user wants to start a new Ubuntu container and immediately get a command-line shell inside it to explore the environment.
+
+Question: What command should they use to create a container and attach an interactive terminal?
+
+
+
+
+
+
+Scenario 12: A container for a web application is already running in the background. A developer needs to debug a problem by accessing the container's filesystem and running a few commands, but they don't want to stop and restart the container.
+
+Question: What is the correct command to get an interactive shell inside an already running container?
+
+
+
+
+Docker Login and Docker Push
+Scenario 13: A DevOps team has a custom-built application image stored in a private repository on Docker Hub. A new developer needs to authenticate with Docker Hub to download the image.
+
+Question: What command must the developer run to log in to their Docker Hub account?
+
+
+
+
+Scenario 14: A developer has built a new version of their application and tagged the image. They need to upload this new image to their remote repository so the rest of the team can use it.
+
+Question: What command should they use to upload the image to Docker Hub?
+
+
+
+
+
+
+
+
+Scenario 15: A new developer is trying to remove a container with docker rm <container_id>, but it keeps failing with an error. The container is still running.
+
+Question: Why is the docker rm command failing, and what is the two-step process they should follow to successfully remove the container?
+
+
+
+
+Scenario 16: 
+A developer wants to run a container from the ubuntu image and have it execute bash interactively. They also need to ensure a local folder on their desktop, /desktopvol, is accessible inside the container at the path /containervol.
+
+Question: What is the correct command to achieve this?
+
+
+
+
+
+Scenario 17: 
+A sysadmin needs to create a volume to store database data for a PostgreSQL container. They want to ensure the data is not lost when the container is removed.
+
+Question: How would they use the docker run command to create and attach a folder called /pgdata to the container's /var/lib/postgresql/data directory?
+
+
+
+
+
+
+Scenario 18: Default Networking
+A developer runs a simple nginx container without specifying any network settings.
+
+Question: Which network does the container automatically attach to, and how can they verify this using a command?
+
+
+
+
+
+
+
+Scenario 19: Creating a Custom Bridge Network
+A team is working on a multi-container application. They want to ensure all their containers can communicate with each other using container names as hostnames, without being exposed to the host's network.
+
+Question: What two commands are needed to first create a custom bridge network named mynet and then run a container attached to it?
+
+
+
+
+
+
+Scenario 20: Host Networking
+An SRE needs to run a monitoring tool in a container and have it use the host machine's network stack directly, including its IP address and port mappings.
+
+Question: What command-line flag should they use with docker run to attach the container to the host network?
+
+
+
+Scenario 21: No Network
+A security researcher needs to run a container in a completely isolated environment, with no network connectivity to the outside world, the host, or other containers.
+
+Question: Which network mode should they specify in the docker run command to achieve this?
+
+
+
+
+
+Scenario 22: 
+A developer is building a Docker image for a Node.js web application. The application's entry point is app.js and it listens on port 3000. The developer needs the container to start the application automatically when it launches.
+
+Question: What two commands are required in the Dockerfile to make the application run by default and expose the correct port?
+	 
+
+
+
+
+
+
+
+
+Scenario 23: Distinguishing CMD and ENTRYPOINT
+A new team member is confused about the difference between CMD and ENTRYPOINT. They have a simple Dockerfile:
+
+Dockerfile
+
+FROM alpine
+ENTRYPOINT ["echo", "Hello, "]
+CMD ["world!"]
+They run the container with docker run <image_name>.
+
+Question: What will the output be, and how would the output change if they ran docker run <image_name> "Docker!"? Explain why.
+
+
+
+
+Scenario 24: Copying an Application
+A developer needs to build a container for a web application. The application's source code is in a local directory called src/ and it needs to be placed into the container's /usr/src/app directory.
+
+Question: What is the correct command to copy all files from the local src/ directory into the specified directory inside the container?
+
+
+
+
+
+Scenario 25: Setting the Default Command
+A system administrator is creating an image for a utility that should execute a specific command by default (e.g., ping localhost). However, they want to allow users to override this command when running the container.
+
+Question: Which commandis the most appropriate for this use case, and what would the syntax look like?
+
+
+
+
+
+
+
+Scenario 26: Port Exposure
+A developer has an application that runs on port 8080 inside a container. They want to provide a hint to other developers and the Docker ecosystem that this port is used, but without actually publishing the port to the host machine.
+
+Question: What is the correct Dockerfile command to document that port 8080 is the intended port for the service?
+
+
+
+
+
+Scenario 27: Identifying a New Drive
+A new system administrator has added a new hard drive to a Linux server and needs to verify that the operating system recognizes it.
+
+Question: What is the first command they should run to check if the hard drive is added?
+
+
+
+
+
+Scenario 28: 
+An engineer wants to encrypt a new unpartitioned drive named /dev/sdb. Before setting up LUKS encryption, they need to create a single partition that will occupy the entire drive.
+
+Question: What command will they use to create a new partition on /dev/sdb?
+
+
+
+
+
+Scenario 29: 
+After partitioning /dev/sdb into /dev/sdb1, a security specialist needs to format the partition with LUKS encryption.
+
+Question: What is the correct command to format the /dev/sdb1 partition with LUKS?
+
+
+Scenario 30: 
+A developer needs to access data on a LUKS-encrypted partition. The partition is /dev/sdb1 and they want to map it to a device name of luks_data.
+
+Question: What command will they use to open the LUKS volume and create the device mapping?
+
+
+
+
+
+
+Scenario 31: 
+A sysadmin has successfully opened a LUKS volume and needs to create an ext4 filesystem on the decrypted device to store files.
+
+Question: What is the command to create an ext4 filesystem on the mapped device /dev/mapper/luks_data?
+
+
+Scenario 32: Mounting the Volume
+A user has formatted the decrypted volume and created a mount point. Now they need to make the filesystem accessible at the specified directory.
+
+Question: What command will mount the decrypted LUKS device /dev/mapper/luks_data to the /mnt/newvolume directory?
+
+
+
+
+
+
+
+Scenario 33: Verifying Volume Properties
+After a luksFormat command, a user wants to check the details of the LUKS header on /dev/sdb1, such as the encryption algorithm and key slots.
+
+Question: What command can be used to display detailed information about the LUKS header on the device?
+
+
+
+
+Scenario 34:
+A new administrator logs into a server and needs to determine if SELinux is active and what its current mode is (enforcing, permissive, or disabled).
+
+Question: What command should they run to check the current status of SELinux?
+
+
+Scenario 35: 
+A developer is troubleshooting an application issue and suspects that SELinux might be blocking it. They want to temporarily put SELinux into permissive mode without editing configuration files.
+
+Question: What is the command to temporarily switch SELinux to permissive mode?
+
+
+
+Scenario 36: 
+An administrator wants to view the SELinux security context of a specific file, such as /etc/passwd.
+
+Question: What command will show the SELinux context (user:role etc) of the /etc/passwd file?
+
+
+
+
+Scenario 37: Checking a Process's Context
+A sysadmin needs to verify that the Apache (httpd) process is running with the correct SELinux context.
+
+Question: What command should they use to list the SELinux context of all running httpd processes?
+
+
+
+
+
+
+Scenario 38: Persisting a File Context Policy
+A developer has moved their website's root directory to /srv/mywebsite. To make this change permanent and survive a file system relabel, they need to update the SELinux policy to always label this directory with httpd_sys_content_t.
+
+Question: What command should they use to add a permanent SELinux file context rule for the /srv/mywebsite directory?
+
+
+
+
+Scenario 39: Restarting the Apache Service
+After making changes to the Apache configuration or SELinux policies, an administrator needs to restart the httpd service to apply them.
+
+Question: What is the command to restart the httpd service?
+
+
+
+Scenario 40:
+A system administrator has just installed Apache (httpd) on a RHEL server. The server is publicly accessible, and the administrator wants to allow incoming HTTP traffic so that users can view the website. They know firewalld is running and needs to be configured.
+
+Question: What two commands should the administrator use to permanently open the standard HTTP port using the predefined service name?
+
+
+
+Scenario 41: Opening a Custom Port
+A developer needs to run a custom application on a RHEL server that listens on TCP port 22222. They have already configured the application but can't access it from outside the server. They know the default firewall policy is blocking the port.
+
+Question: What two commands should they run to permanently open TCP port 22222 for all incoming connections?

@@ -1,0 +1,17 @@
+
+	eksctl create cluster --name=eksvilas --region=us-east-2 --zones=us-east-2a,us-east-2b --without-nodegroup 
+
+	eksctl create nodegroup --cluster=eksvilas --region=us-east-2 --name=eksvilas-ng-public1 --node-type=t2.medium --nodes=2 --nodes-min=1 --nodes-max=3 --node-volume-size=30 --ssh-access --ssh-public-key=vilasohio --managed --asg-access --external-dns-access --full-ecr-access --appmesh-access --alb-ingress-access --spot
+
+
+aws sts get-caller-identity
+aws eks update-kubeconfig --region us-east-2 --name eksvilas
+aws eks update-kubeconfig --region region-code --name my-cluster
+
+
+	eksctl delete nodegroup --cluster eksvilas --region us-east-2 --name eksvilas-ng-public1 
+	eksctl delete cluster --name=eksvilas --region=us-east-2 
+
+	 	
+
+	eksctl create cluster --name=eks-spot-managed-node-groups --instance-types=m5.xlarge,m5a.xlarge,m5d.xlarge --managed --nodes=2 --asg-access --nodegroup-name on-demand-4vcpu-16gb

@@ -1,0 +1,65 @@
+1. Get default scheuler
+	git clone https://github.com/kubernetes/kubernetes.git
+	cd kubernetes
+	make
+	
+	sudo su
+	cd /home/vagrant/docker-k8s/yaml/cka/multipleScheulers/
+	curl https://storage.googleapis.com/kubernetes-release/release/v1.19.0/bin/linux/amd64/kube-scheduler -o kube-scheduler
+	
+2. docker build -t vilasvarghese/my-scheduler .	
+
+3. docker login -u vilasvarghese
+
+4. docker push vilasvarghese/my-scheduler
+	
+	
+Give access to  /usr/local/bin/kube-scheduler
+
+Login both workernode
+	cd /usr/local/bin
+	sudo mkdir kube-scheduler
+	sudo chmod 777 kube-scheduler
+	
+5. 	Refer my-scheduler.yaml
+	--scheduler-name 
+		should be unique
+		should match with pod.spec.schedulerName
+		
+		
+	 Created a dedicated service account my-scheduler 
+	 Bind the cluster role system:kube-scheduler to it 
+		system:kube-scheduler role used by default scheduler
+	 Acquire the same privileges as kube-scheduler.
+	
+	kubectl apply -f my-scheduler.yaml
+
+6. kubectl get pods --namespace=kube-system
+
+
+	Enable leader election
+	-----------------------
+	
+	kubectl create ns ns1
+	
+To run multiple-scheduler with leader election enabled, 
+
+	Update
+	--leader-elect=true
+	
+	Add the following 
+	--lock-object-namespace=<lock-object-namespace>
+	--lock-object-name=<lock-object-name>
+
+	Refer: my-scheduler-leader-elect.yaml
+
+N.B: 
+	The control plane creates the lock objects we mention,
+	namespace must be created by us. 
+	You can use the kube-system namespace.
+
+
+
+If RBAC is enabled on your cluster, you must update the system:kube-scheduler cluster role. Add your scheduler name to the resourceNames of the rule applied for endpoints and leases resources, as in the following example:
+
+kubectl edit clusterrole system:kube-scheduler

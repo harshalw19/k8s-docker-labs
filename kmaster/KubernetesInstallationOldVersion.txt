@@ -1,0 +1,41 @@
+https://github.com/vilasvarghese/CKA/blob/master/exercises/VagrantScripts/kmaster-1.8/bootstrap.sh
+https://www.liquidweb.com/kb/how-to-install-kubernetes-using-kubeadm-on-ubuntu-18/
+
+sudo hostnamectl set-hostname kmaster1
+sudo hostnamectl set-hostname kworker1
+sudo hostnamectl set-hostname kworker2	
+
+/etc/hosts
+172.31.18.53 	kmaster 	kmaster
+172.31.29.73 	kworker1 	kworker1
+172.31.20.129	kworker2 	kworker2
+
+172.31.76.177	
+
+
+
+
+  mkdir -p $HOME/.kube
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+You should now deploy a pod network to the cluster.
+Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+  https://kubernetes.io/docs/concepts/cluster-administration/addons/
+
+Then you can join any number of worker nodes by running the following on each as root:
+
+kubeadm join 172.31.76.177:6443 --token vmouxw.le19mdwmss6m939r \
+    --discovery-token-ca-cert-hash sha256:539c695ddb4b6b6a6a1b70bed426691763b3871a8eda4ba63746c51e4a807073
+
+------------------------------------
+
+apt list -a kubeadm
+apt install -y kubeadm=1.24.7-00 kubelet=1.24.7-00 kubectl=1.24.7-00
+sudo yum -y install kubelet=1.23.7-00 kubeadm=1.23.7-00 kubectl=1.23.7-00 --disableexcludes=kubernetes
+
+kubeadm token create --print-join-command
+
+sudo yum -y install kubelet-1.23* kubeadm-1.23* kubectl-1.23* --disableexcludes=kubernetes
+
+sudo apt-get install -y kubelet kubeadm kubectl

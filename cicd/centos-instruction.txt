@@ -1,0 +1,117 @@
+#############################################
+Jenkins installation on the latest is noted to be failing with java 8.
+So instead of below doc. you may follow 
+	- https://www.jenkins.io/doc/book/installing/linux/#red-hat-centos
+	- https://pkg.jenkins.io/redhat/
+	
+Ensure to install java 11 and if java 8 is there on the machine try 
+	alternatives --config java  
+	alternatives --config javac
+#############################################
+
+Java Installation
+sudo yum install -y java-11-openjdk-devel
+sudo yum install -y java-1.8.0-openjdk-devel
+
+#Java installation  on amazon linux
+sudo yum install java-11-amazon-corretto-devel
+or 
+sudo yum install java-11-amazon-corretto
+
+#install maven
+sudo yum install -y maven
+mvn -version
+
+
+
+Jenkins installation
+
+#Ignore 
+	#The next step is to enable the Jenkins repository. To do that, import the GPG key using the following curl command:
+	curl --silent --location http://pkg.jenkins-ci.org/redhat-stable/jenkins.repo | sudo tee /etc/yum.repos.d/jenkins.repo
+
+	#And add the repository to your system with:
+	sudo rpm --import https://jenkins-ci.org/redhat/jenkins-ci.org.key
+
+Instead follow below
+------------------------------------------------------------------------------
+For public key install error
+
+	curl --silent --location http://pkg.jenkins-ci.org/redhat/jenkins.repo | sudo tee /etc/yum.repos.d/jenkins.repo
+	sudo rpm --import https://pkg.jenkins.io/redhat/jenkins.io.key
+	sudo yum install jenkins --nogpgcheck
+------------------------------------------------------------------------------
+
+#install the latest stable version of Jenkins by typing:
+sudo yum install jenkins
+
+
+systemctl start jenkins
+systemctl status jenkins
+sudo systemctl enable jenkins
+
+	sudo firewall-cmd --permanent --zone=public --add-port=8080/tcp
+	sudo firewall-cmd --reload
+
+
+yum install git -y
+
+
+go to the url
+http://192.168.56.130:8080
+
+Copy the url from the location mentioned in the initial page
+/var/lib/jenkins/secrets/initialAdminPassword
+
+Install all default plugin
+
+Create the user of your choise.
+
+
+Execute the below instructions
+yum install docker -y
+1. sudo groupadd docker
+2. sudo usermod -aG docker jenkins
+3. chown root:docker /var/run/docker.sock
+
+reboot
+#systemctl restart jenkins
+
+Login to Jenkins
+	Clicke "Jenkins" - New Item - 
+	Enter a name and click on "Free Style Project"
+
+	Mention the git hub repo.
+	
+	Click "Add Build Step" - Execute as shell
+	and copy paste the below
+
+
+On the terminal
+	sudo su
+	mv /var/lib/jenkins/.kube/config /home #this may fail if you haven't execute jenkins till kubectl at least once
+	cp -r /home/<user>/.kube /var/lib/jenkins/
+	restart jenkins
+	systemctl restart jenkins
+	
+	cd /var/lib/jenkins/.kube
+	chown jenkins:jenkins config
+	ls -ld config
+##########################################################################
+mvn clean install
+docker build -t java-web-app-cicd:latest .
+if (docker ps -a | grep 'java-web-app-cicd')
+then
+  docker stop java-web-app-cicd
+  docker rm -f java-web-app-cicd
+fi
+docker run -d -p 8888:8080 --name java-web-app-cicd java-web-app-cicd
+mvn test
+docker login -u <your docker user name> -p <your password>
+docker commit java-web-app-cicd <your docker user name>/java-web-app-cicd:latest
+docker push <your docker user name>/java-web-app-cicd:latest
+
+kubectl delete deploy --all
+kubectl create -f deploy-tomcat.yaml
+##########################################################################
+
